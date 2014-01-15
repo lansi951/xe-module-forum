@@ -175,44 +175,53 @@
                 $oDocumentModel = &getModel('document');
                 //get all categories list
                 $categorylist = $oDocumentModel->getCategoryList($this->module_srl);
-                $child_exists=0;
+                $child_exists = 0;
                 foreach ($categorylist as $key) {
-                	if($key->child_count) $child_exists=1;
+                	if($key->child_count) 
+                		$child_exists=1;
                 	break;
                 }
                 //set comment_count for each category
                 foreach ($categorylist as $key) {
-                	$key->comment_count=0;
-                	$args->category_srl=$key->category_srl;
-                	$args->module_srl=$this->module_srl;
+                	$key->comment_count = 0;
+                	$args->category_srl = $key->category_srl;
+                	$args->module_srl = $this->module_srl;
                 	$args->categories = $key->childs;
                 	$args->categories[] = $key->category_srl;
                 	$aux = executeQueryArray('forum.getCategoryCommentCount',$args);
                 	$key->comment_count = $aux->data[0]->count;
-                	$key->style_index=1;
-                	$key->child_exists=$child_exists;
-                	if($child_exists) {
-                		if($key->depth) $key->style_index=0;
+                	$key->style_index = 1;
+                	$key->child_exists = $child_exists;
+                	if($child_exists)
+                	{
+                		if($key->depth)
+                			$key->style_index=0;
                 	}
-                	else {
-                	$key->style_index=0;
+                	else 
+                	{
+                		$key->style_index=0;
                 	}
                 }
                  //set information for last update
-                foreach($categorylist as $category){
-                	if($category->childs) $argx->categories = implode(',', $category->childs).','.$category->category_srl;
-                	   else $argx->categories=$category->category_srl;
+                foreach($categorylist as $category)
+                {
+                	if($category->childs)
+                		$argx->categories = implode(',', $category->childs).','.$category->category_srl;
+                	else
+                		$argx->categories = $category->category_srl;
                 	// NOTE This query has an inner join with documents table by last_update columns.
                         // It might get slow if no index exists so consider splitting it in two separate queries if this happens.
-                        $last_document = executeQueryArray('forum.getCategoryLatestUpdate',$argx)->data[0];
+                        $last_document = executeQuery('forum.getCategoryLatestUpdate',$argx)->data;
                 	$argx->last_update = $last_document->last_update;
                 	$last_document_srl = $last_document->document_srl;
                 	$last_document_author = $last_document->author;
                 	$argx->document_srl = $last_document_srl;
-                	$last_post = executeQueryArray('forum.getDocumentLatestComment', $argx)->data[0];
+                	$last_post = executeQuery('forum.getDocumentLatestComment', $argx)->data;
                 	$category->last_update = $argx->last_update;
-                	if($last_post->author) $category->last_author = $last_post->author;
-                	  else $category->last_author = $last_document_author;
+                	if($last_post->author)
+                		$category->last_author = $last_post->author;
+                	else
+                		$category->last_author = $last_document_author;
                 	$category->last_post = $last_post->comment_srl;
                 	$category->last_document = $last_document_srl;
                 }
